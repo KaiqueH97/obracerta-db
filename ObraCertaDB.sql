@@ -176,3 +176,31 @@ SELECT u.nome, AVG(p.progresso) AS progresso_medio, COUNT(p.id) AS total_projeto
 FROM usuarios u
 INNER JOIN projetos p ON u.id = p.usuario_id
 GROUP BY u.nome;
+
+-- 1. Uso de COUNT e IN: Conta quantos projetos cada gestor tem com progressos específicos.
+SELECT gestor, COUNT(id) AS qtd_projetos
+FROM vw_resumo_obras
+WHERE progresso IN (0, 10, 50, 100)
+GROUP BY gestor;
+
+-- 2. Uso de SUM e BETWEEN: Soma o total investido por cliente dentro de uma faixa de valor.
+SELECT nome AS cliente, SUM(total_investido) AS investimento_total
+FROM vw_financeiro_cliente
+WHERE total_investido BETWEEN 1000 AND 10000
+GROUP BY nome
+ORDER BY investimento_total DESC;
+
+-- 3. Uso de AVG e WHERE: Média de progresso das obras gerenciadas por um usuário específico.
+SELECT gestor, AVG(progresso) AS media_conclusao
+FROM vw_resumo_obras
+WHERE gestor = 'Kaique H.'
+GROUP BY gestor;
+
+-- 4. Uso de MAX e GROUP BY: Qual foi a compra de maior valor feita nos últimos 30 dias por projeto.
+SELECT titulo AS obra, MAX(valor) AS maior_despesa
+FROM vw_compras_recentes
+GROUP BY titulo;
+
+-- 5. Uso de MIN: Verifica qual é o menor progresso médio entre os gestores.
+SELECT MIN(progresso_medio) AS pior_desempenho_medio
+FROM vw_desempenho_gestor;
