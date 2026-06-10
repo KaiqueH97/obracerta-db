@@ -204,3 +204,25 @@ GROUP BY titulo;
 -- 5. Uso de MIN: Verifica qual é o menor progresso médio entre os gestores.
 SELECT MIN(progresso_medio) AS pior_desempenho_medio
 FROM vw_desempenho_gestor;
+
+-- 1. Subquery no WHERE (IN): Busca o nome dos clientes que possuem projetos 100% concluídos.
+SELECT nome FROM clientes 
+WHERE id IN (SELECT cliente_id FROM projetos WHERE progresso = 100);
+
+-- 2. Subquery Escalar no SELECT: Lista os projetos e traz o custo total de cada um direto na mesma linha.
+SELECT titulo, 
+       (SELECT COALESCE(SUM(valor), 0) FROM despesas WHERE projeto_id = projetos.id) AS custo_total 
+FROM projetos;
+
+-- 3. Subquery no WHERE (=): Busca todas as tarefas do projeto mais recente inserido no banco.
+SELECT descricao, status FROM tarefas 
+WHERE projeto_id = (SELECT MAX(id) FROM projetos);
+
+-- 4. Subquery no FROM: Calcula a quantidade de tarefas por projeto e filtra os que têm mais de 1 tarefa.
+SELECT sub.projeto_id, sub.total_tarefas 
+FROM (SELECT projeto_id, COUNT(*) AS total_tarefas FROM tarefas GROUP BY projeto_id) AS sub 
+WHERE sub.total_tarefas > 1;
+
+-- 5. Subquery Aninhada: Lista despesas do projeto que pertence a um cliente específico ('Construtora Alfa').
+SELECT item, valor FROM despesas 
+WHERE projeto_id IN (SELECT id FROM projetos WHERE cliente_id = (SELECT id FROM clientes WHERE nome = 'Construtora Alfa'));
