@@ -226,3 +226,15 @@ WHERE sub.total_tarefas > 1;
 -- 5. Subquery Aninhada: Lista despesas do projeto que pertence a um cliente específico ('Construtora Alfa').
 SELECT item, valor FROM despesas 
 WHERE projeto_id IN (SELECT id FROM projetos WHERE cliente_id = (SELECT id FROM clientes WHERE nome = 'Construtora Alfa'));
+
+CREATE INDEX idx_clientes_nome ON clientes(nome);
+CREATE INDEX idx_projetos_progresso ON projetos(progresso);
+CREATE INDEX idx_tarefas_status ON tarefas(status);
+CREATE INDEX idx_despesas_data ON despesas(data_compra);
+CREATE INDEX idx_usuarios_ativo ON usuarios(ativo);
+
+CREATE TABLE log_auditoria (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    mensagem VARCHAR(255) NOT NULL,
+    data_registro DATETIME DEFAULT CURRENT_TIMESTAMP
+);
