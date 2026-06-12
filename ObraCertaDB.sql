@@ -238,3 +238,37 @@ CREATE TABLE log_auditoria (
     mensagem VARCHAR(255) NOT NULL,
     data_registro DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+DELIMITER //
+
+-- 1. Procedure para inserir um novo cliente rapidamente
+CREATE PROCEDURE sp_novo_cliente(IN p_nome VARCHAR(100), IN p_telefone VARCHAR(20), IN p_cpf_cnpj VARCHAR(20))
+BEGIN
+    INSERT INTO clientes (nome, telefone, cpf_cnpj) VALUES (p_nome, p_telefone, p_cpf_cnpj);
+END //
+
+-- 2. Procedure para atualizar o progresso de um projeto
+CREATE PROCEDURE sp_atualizar_progresso(IN p_id INT, IN p_progresso INT)
+BEGIN
+    UPDATE projetos SET progresso = p_progresso WHERE id = p_id;
+END //
+
+-- 3. Procedure para registrar ações na tabela de auditoria
+CREATE PROCEDURE sp_registrar_log(IN p_mensagem VARCHAR(255))
+BEGIN
+    INSERT INTO log_auditoria (mensagem) VALUES (p_mensagem);
+END //
+
+-- 4. Procedure para inativar um usuário
+CREATE PROCEDURE sp_inativar_usuario(IN p_id INT)
+BEGIN
+    UPDATE usuarios SET ativo = FALSE WHERE id = p_id;
+END //
+
+-- 5. Procedure para concluir todas as tarefas de um projeto
+CREATE PROCEDURE sp_concluir_tarefas_projeto(IN p_projeto_id INT)
+BEGIN
+    UPDATE tarefas SET status = 'CONCLUIDO' WHERE projeto_id = p_projeto_id AND status != 'CONCLUIDO';
+END //
+
+DELIMITER ;
