@@ -272,3 +272,44 @@ BEGIN
 END //
 
 DELIMITER ;
+
+DELIMITER //
+
+-- 1. Função para calcular o total gasto de um projeto
+CREATE FUNCTION fn_total_gasto(p_projeto_id INT) RETURNS DECIMAL(10,2) DETERMINISTIC
+BEGIN
+    DECLARE v_total DECIMAL(10,2);
+    SELECT COALESCE(SUM(valor), 0) INTO v_total FROM despesas WHERE projeto_id = p_projeto_id;
+    RETURN v_total;
+END //
+
+-- 2. Função para verificar o status de um projeto com base no progresso
+CREATE FUNCTION fn_status_obra(p_progresso INT) RETURNS VARCHAR(20) DETERMINISTIC
+BEGIN
+    IF p_progresso = 100 THEN RETURN 'FINALIZADA';
+    ELSEIF p_progresso = 0 THEN RETURN 'NÃO INICIADA';
+    ELSE RETURN 'EM ANDAMENTO';
+    END IF;
+END //
+
+-- 3. Função para contar quantas tarefas pendentes um projeto possui
+CREATE FUNCTION fn_tarefas_pendentes(p_projeto_id INT) RETURNS INT DETERMINISTIC
+BEGIN
+    DECLARE v_qtd INT;
+    SELECT COUNT(*) INTO v_qtd FROM tarefas WHERE projeto_id = p_projeto_id AND status = 'PENDENTE';
+    RETURN v_qtd;
+END //
+
+-- 4. Função para formatar o nome do status da tarefa (tudo maiúsculo)
+CREATE FUNCTION fn_formata_status(p_status VARCHAR(50)) RETURNS VARCHAR(50) DETERMINISTIC
+BEGIN
+    RETURN UPPER(TRIM(p_status));
+END //
+
+-- 5. Função de validação: retorna 1 (Verdadeiro) se a despesa for maior que 0
+CREATE FUNCTION fn_valida_valor(p_valor DECIMAL(10,2)) RETURNS BOOLEAN DETERMINISTIC
+BEGIN
+    RETURN p_valor > 0;
+END //
+
+DELIMITER ;
