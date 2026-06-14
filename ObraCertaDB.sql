@@ -313,3 +313,55 @@ BEGIN
 END //
 
 DELIMITER ;
+
+DELIMITER //
+
+-- 1. Impede a exclusão de um projeto que já começou (progresso > 0)
+CREATE TRIGGER trg_impede_delete_projeto
+BEFORE DELETE ON projetos
+FOR EACH ROW
+BEGIN
+    IF OLD.progresso > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Projetos em andamento não podem ser excluídos!';
+    END IF;
+END //
+
+-- 2. Garante que despesas negativas não sejam inseridas
+CREATE TRIGGER trg_valida_despesa_negativa
+BEFORE INSERT ON despesas
+FOR EACH ROW
+BEGIN
+    IF NEW.valor <= 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Valor da despesa deve ser maior que zero.';
+    END IF;
+END //
+
+-- 3. Validação ao atualizar clientes: não pode remover o CPF/CNPJ
+CREATE TRIGGER trg_protege_documento_cliente
+BEFORE UPDATE ON clientes
+FOR EACH ROW
+BEGIN
+    IF NEW.cpf_cnpj IS NULL OR NEW.cpf_cnpj = '' THEN
+        SET NEW.cpf_cnpj = OLD.cpf_cnpj;
+    END IF;
+END //
+
+-- 4. Força que a data de uma nova despesa não seja no futuro
+CREATE TRIGGER trg_data_despesa_valida
+BEFORE INSERT ON despesas
+FOR EACH ROW
+BEGIN
+    IF NEW.data_compra > CURDATE() THEN
+        SET NEW.data_compra = CURDATE();
+    END IF;
+END //
+
+-- 5. Ao excluir uma tarefa, joga o texto num log de backup manual de segurança
+CREATE TRIGGER trg_backup_tarefa_excluida
+BEFORE DELETE ON tarefas
+FOR EACH ROW
+BEGIN
+    INSERT INTO log_auditoria (mensagem) VALUES (CONCAT('Tarefa excluída: ', OLD.descricao));
+END //
+
+DELIMITER ;
