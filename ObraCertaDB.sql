@@ -365,3 +365,53 @@ BEGIN
 END //
 
 DELIMITER ;
+
+DELIMITER //
+
+-- 1. Usa Procedure: Após inserir um novo projeto, grava no log usando a Procedure.
+CREATE TRIGGER trg_log_novo_projeto
+AFTER INSERT ON projetos
+FOR EACH ROW
+BEGIN
+    CALL sp_registrar_log(CONCAT('Novo projeto cadastrado. ID: ', NEW.id));
+END //
+
+-- 2. Usa Procedure: Se o projeto for atualizado para 100%, conclui as tarefas usando Procedure.
+CREATE TRIGGER trg_auto_conclui_tarefas
+AFTER UPDATE ON projetos
+FOR EACH ROW
+BEGIN
+    IF NEW.progresso = 100 AND OLD.progresso < 100 THEN
+        CALL sp_concluir_tarefas_projeto(NEW.id);
+    END IF;
+END //
+
+-- 3. Usa Function: Antes de inserir tarefa, formata o status usando a Function.
+CREATE TRIGGER trg_formata_status_tarefa
+BEFORE INSERT ON tarefas
+FOR EACH ROW
+BEGIN
+    SET NEW.status = fn_formata_status(NEW.status);
+END //
+
+-- 4. Usa Function: Antes de inserir despesa, valida se o valor é positivo usando a Function.
+CREATE TRIGGER trg_usa_fn_valida_valor
+BEFORE INSERT ON despesas
+FOR EACH ROW
+BEGIN
+    IF fn_valida_valor(NEW.valor) = FALSE THEN
+         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Erro de Function: Valor inválido.';
+    END IF;
+END //
+
+-- 5. Usa Function: Se tentar deletar um projeto, verifica se tem tarefas pendentes usando Function.
+CREATE TRIGGER trg_verifica_pendencias_delete
+BEFORE DELETE ON projetos
+FOR EACH ROW
+BEGIN
+    IF fn_tarefas_pendentes(OLD.id) > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Não é possível excluir. Existem tarefas pendentes.';
+    END IF;
+END //
+
+DELIMITER ;
