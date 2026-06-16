@@ -415,3 +415,34 @@ BEGIN
 END //
 
 DELIMITER ;
+
+-- Transação 1: Sucesso total (COMMIT)
+START TRANSACTION;
+INSERT INTO clientes (nome, telefone, cpf_cnpj) VALUES ('Cliente Novo', '11999999999', '00000000001');
+INSERT INTO projetos (titulo, descricao, progresso, usuario_id, cliente_id) VALUES ('Obra Rápida', 'Pequena reforma', 0, 1, LAST_INSERT_ID());
+COMMIT;
+
+-- Transação 2: Simulação de erro e cancelamento (ROLLBACK)
+START TRANSACTION;
+DELETE FROM tarefas WHERE projeto_id = 1;
+DELETE FROM projetos WHERE id = 1;
+-- Ops, percebi que não devia deletar o projeto 1!
+ROLLBACK;
+
+-- Transação 3: Atualização de despesas em lote (COMMIT)
+START TRANSACTION;
+UPDATE despesas SET valor = valor * 1.05 WHERE data_compra < '2026-03-01';
+UPDATE projetos SET progresso = 5 WHERE progresso = 0;
+COMMIT;
+
+-- Transação 4: Transferência de responsabilidade de projeto e inserção de log (COMMIT)
+START TRANSACTION;
+UPDATE projetos SET usuario_id = 2 WHERE usuario_id = 1 AND id = 2;
+INSERT INTO log_auditoria (mensagem) VALUES ('Projeto 2 transferido do usuario 1 para o 2');
+COMMIT;
+
+-- Transação 5: Tentativa de inserção com rollback (ROLLBACK)
+START TRANSACTION;
+INSERT INTO tarefas (descricao, status, projeto_id) VALUES ('Tarefa teste transação', 'PENDENTE', 3);
+-- Decidiu-se cancelar a inserção da tarefa antes de confirmar
+ROLLBACK;
